@@ -32,12 +32,60 @@ describe("i18n Infrastructure", () => {
     expect(i18n.t("settings.account")).toBe("Account");
   });
 
+  it("switches language dynamically to French", async () => {
+    await act(async () => {
+      await i18n.changeLanguage("fr");
+    });
+    expect(i18n.language).toBe("fr");
+    expect(i18n.t("common.appName")).toBe("WorkloadGovernor");
+    expect(i18n.t("settings.title")).toBe("Paramètres");
+    expect(i18n.t("settings.account")).toBe("Compte");
+    expect(i18n.t("nav.dashboard")).toBe("Tableau de bord");
+    expect(i18n.t("maintainer.title")).toBe("Panneau de mainteneur");
+    expect(i18n.t("maintainer.assign")).toBe("Assigner");
+  });
+
+  it("switches back from French to English correctly", async () => {
+    await act(async () => {
+      await i18n.changeLanguage("fr");
+    });
+    expect(i18n.t("settings.title")).toBe("Paramètres");
+
+    await act(async () => {
+      await i18n.changeLanguage("en");
+    });
+    expect(i18n.t("settings.title")).toBe("Settings");
+  });
+
   it("handles pluralization correctly for count strings in English", () => {
     expect(i18n.t("counts.slot", { count: 1 })).toBe("1 slot");
     expect(i18n.t("counts.slot", { count: 3 })).toBe("3 slots");
 
     expect(i18n.t("counts.application", { count: 1 })).toBe("1 application");
     expect(i18n.t("counts.application", { count: 2 })).toBe("2 applications");
+  });
+
+  it("handles pluralization correctly for count strings in Spanish", async () => {
+    await act(async () => {
+      await i18n.changeLanguage("es");
+    });
+    expect(i18n.t("counts.slot", { count: 1 })).toBe("1 espacio");
+    expect(i18n.t("counts.slot", { count: 3 })).toBe("3 espacios");
+
+    expect(i18n.t("counts.application", { count: 1 })).toBe("1 solicitud");
+    expect(i18n.t("counts.application", { count: 2 })).toBe("2 solicitudes");
+  });
+
+  it("handles pluralization correctly for count strings in French", async () => {
+    await act(async () => {
+      await i18n.changeLanguage("fr");
+    });
+    // French uses singular for 0 and 1, plural for 2+
+    expect(i18n.t("counts.slot", { count: 1 })).toBe("1 créneau");
+    expect(i18n.t("counts.slot", { count: 3 })).toBe("3 créneaux");
+
+    expect(i18n.t("counts.application", { count: 1 })).toBe("1 candidature");
+    expect(i18n.t("counts.application", { count: 2 })).toBe("2 candidatures");
   });
 
   it("formats dates using Intl.DateTimeFormat respecting selected locale", () => {
@@ -50,6 +98,10 @@ describe("i18n Infrastructure", () => {
     const formattedEs = formatDate(testDate, { year: "numeric", month: "long", day: "numeric" }, "es");
     expect(formattedEs.toLowerCase()).toContain("junio");
     expect(formattedEs).toContain("2026");
+
+    const formattedFr = formatDate(testDate, { year: "numeric", month: "long", day: "numeric" }, "fr");
+    expect(formattedFr.toLowerCase()).toContain("juin");
+    expect(formattedFr).toContain("2026");
   });
 
   it("changes displayed language via SettingsPage language dropdown", async () => {
@@ -93,5 +145,17 @@ describe("i18n Infrastructure", () => {
 
     expect(i18n.language).toBe("es");
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Configuración");
+  });
+
+  it("French locale has all required keys matching English structure", async () => {
+    await act(async () => {
+      await i18n.changeLanguage("fr");
+    });
+    // Verify all top-level namespaces are present with non-empty values
+    expect(i18n.t("common.connectWallet")).not.toBe("common.connectWallet");
+    expect(i18n.t("nav.home")).toBe("Accueil");
+    expect(i18n.t("maintainer.applications")).toBe("Candidatures");
+    expect(i18n.t("maintainer.noApplications")).toBe("Aucune candidature en attente.");
+    expect(i18n.t("errors.global_limit_reached")).toContain("15");
   });
 });
