@@ -5,9 +5,14 @@
  *   🟢 connected   — publicKey present, not connecting
  *   🟡 connecting  — connecting === true
  *   🔴 disconnected — no publicKey and not connecting
+ *
+ * Language selector (issue #538):
+ *   Renders a LanguageSelector dropdown in the navbar menu.
+ *   Selection is persisted to localStorage via the LanguageSelector component.
  */
 import { useState } from "react";
 import type { Theme } from "../hooks/useTheme";
+import { LanguageSelector } from "./LanguageSelector";
 
 // ── WalletStatusDot ───────────────────────────────────────────────────────────
 
@@ -71,6 +76,8 @@ export function NavBar({
   connecting = false,
   onConnect,
   onDisconnect,
+  theme,
+  onToggleTheme,
 }: NavBarProps) {
   const [open, setOpen] = useState(false);
 
@@ -124,6 +131,11 @@ export function NavBar({
         <a className="navbar__link" href="#/dashboard" onClick={() => setOpen(false)}>
           Dashboard
         </a>
+
+        {/* Language selector — closes #538 */}
+        <div className="navbar__language" data-testid="navbar-language-selector">
+          <LanguageSelector showLabel={false} className="navbar__language-select" />
+        </div>
 
         <div className="navbar__wallet">
           {networkMismatch && walletAddress && (
